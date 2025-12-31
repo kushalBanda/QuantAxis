@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 import orjson
+import requests
 
 from app.services.equity.historical import HistoricalDataReader
 from app.services.equity.technicalIndicators import TechnicalIndicatorsReader
@@ -69,7 +70,18 @@ def fetch_technical_indicators_data(
     local_client = client or EquityMarketClient(base_url=base_url)
     reader = TechnicalIndicatorsReader(client=local_client)
     try:
-        return {symbol: reader.fetch_indicators(symbol) for symbol in symbols}
+        results: dict[str, dict] = {}
+        for symbol in symbols:
+            try:
+                results[symbol] = reader.fetch_indicators(symbol)
+            except requests.HTTPError as exc:
+                response = exc.response
+                results[symbol] = {
+                    "error": "Failed to fetch technical indicators.",
+                    "status_code": response.status_code if response else None,
+                    "details": response.text if response else str(exc),
+                }
+        return results
     finally:
         if client is None:
             reader.close()
@@ -103,7 +115,7 @@ def main(
 
 
 if __name__ == "__main__":
-    user_symbols = ["ACC", "TCS", "HDFC", "INFY"]
+    user_symbols = ["ACC"]
     start_date = "2025-01-01"
-    end_date = "2025-12-31"
+    end_date = "2025-01-05"
     main(user_symbols, start_date, end_date)
