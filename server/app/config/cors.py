@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from config.env import Environment
+
+from app.config.env import Environment
 
 def setup_cors(app: FastAPI):
     origins = list(filter(None, [

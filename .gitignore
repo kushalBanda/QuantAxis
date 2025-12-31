@@ -208,3 +208,19 @@ __marimo__/
 
 
 stock-nse-india/
+
+# Chat
+chat/*
+
+# AI generated files
+.cursor/*
+.claude/*
+
+# Markdown files
+CLAUDE.md
+AGENTS.md
+QWEN.md
+GEMINI.md
+
+# PRD files
+*.adoc
