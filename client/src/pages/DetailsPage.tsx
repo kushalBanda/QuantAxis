@@ -12,20 +12,7 @@ function DetailsPage() {
   const [details, setDetails] = useState<EquityResponse | null>(null);
   const [status, setStatus] = useState<LoadStatus>('idle');
   const [error, setError] = useState<Error | null>(null);
-  const [activeTab, setActiveTab] = useState('Chart');
-
-  const tabs = [
-    'Chart',
-    'Analysis',
-    'Peers',
-    'Quarters',
-    'Profit & Loss',
-    'Balance Sheet',
-    'Cash Flow',
-    'Ratios',
-    'Investors',
-    'Documents',
-  ];
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (!symbol) {
@@ -41,17 +28,22 @@ function DetailsPage() {
       setStatus('loading');
       setError(null);
       setDetails(null);
+      console.log('Fetching details for symbol:', currentSymbol);
       try {
         const data = await fetchEquityDetails(currentSymbol, {
           signal: controller.signal,
         });
+        console.log('Successfully fetched data:', data);
         setDetails(data);
         setStatus('success');
       } catch (loadError) {
         if (loadError instanceof DOMException && loadError.name === 'AbortError') {
+          console.log('Request aborted');
           return;
         }
-        setError(loadError instanceof Error ? loadError : new Error('Failed to load'));
+        console.error('Error fetching details:', loadError);
+        const errorMessage = loadError instanceof Error ? loadError.message : 'Failed to load company details';
+        setError(new Error(errorMessage));
         setStatus('error');
       }
     }
@@ -75,8 +67,32 @@ function DetailsPage() {
     return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
   };
 
+  const formatCrores = (value: number) => {
+    const crores = value / 10000000;
+    return new Intl.NumberFormat('en-IN', {
+      maximumFractionDigits: 0,
+      minimumFractionDigits: 0
+    }).format(crores);
+  };
+
+  const calculateMarketCap = () => {
+    if (!details?.securityInfo?.issuedSize || !details?.priceInfo?.lastPrice) {
+      return null;
+    }
+    return details.securityInfo.issuedSize * details.priceInfo.lastPrice;
+  };
+
   const priceChange = details?.priceInfo?.change ?? null;
   const priceChangeClass = priceChange === null ? '' : priceChange < 0 ? 'is-down' : 'is-up';
+  const marketCap = calculateMarketCap();
+
+  const handleHeaderSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/symbol/${searchQuery.trim().toUpperCase()}`);
+      setSearchQuery('');
+    }
+  };
 
   return (
     <div className="DetailsPage">
@@ -86,16 +102,10 @@ function DetailsPage() {
             <span className="DetailsPage-logo-text">Quant</span>
             <span className="DetailsPage-logo-accent">xis</span>
           </button>
-
-          <nav className="DetailsPage-nav-links">
-            <a href="/">HOME</a>
-            <a href="/screens">SCREENS</a>
-            <a href="/tools">TOOLS</a>
-          </nav>
         </div>
 
         <div className="DetailsPage-actions">
-          <div className="DetailsPage-search">
+          <form onSubmit={handleHeaderSearch} className="DetailsPage-search">
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
               <path
                 d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16zM19 19l-4.35-4.35"
@@ -105,10 +115,14 @@ function DetailsPage() {
                 strokeLinejoin="round"
               />
             </svg>
-            <input type="search" placeholder="Search for a company" />
-          </div>
-          <button className="DetailsPage-btn-outline">LOGIN</button>
-          <button className="DetailsPage-btn-primary">GET FREE ACCOUNT</button>
+            <input
+              type="text"
+              placeholder="Search for a company"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              autoComplete="off"
+            />
+          </form>
         </div>
       </header>
 
@@ -118,7 +132,12 @@ function DetailsPage() {
 
       {status === 'error' && (
         <div className="DetailsPage-error">
-          {error?.message || 'Failed to load company details.'}
+          <h2>Error Loading {symbol}</h2>
+          <p>{error?.message || 'Failed to load company details.'}</p>
+          <p>Please check the browser console for more details.</p>
+          <button onClick={() => navigate('/')} className="DetailsPage-back-btn">
+            ← Back to Home
+          </button>
         </div>
       )}
 
@@ -127,34 +146,6 @@ function DetailsPage() {
           <div className="DetailsPage-tabs-wrapper">
             <div className="DetailsPage-tabs-container">
               <div className="DetailsPage-symbol">{symbol}</div>
-              <div className="DetailsPage-tabs">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab}
-                    className={`DetailsPage-tab ${activeTab === tab ? 'is-active' : ''}`}
-                    onClick={() => setActiveTab(tab)}
-                  >
-                    {tab}
-                  </button>
-                ))}
-              </div>
-              <div className="DetailsPage-tabs-actions">
-                <button className="DetailsPage-notebook-btn">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
-                    <line x1="9" y1="9" x2="15" y2="9" stroke="currentColor" strokeWidth="2" />
-                    <line x1="9" y1="13" x2="15" y2="13" stroke="currentColor" strokeWidth="2" />
-                  </svg>
-                  Notebook
-                </button>
-                <button className="DetailsPage-ai-btn">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" strokeWidth="2" />
-                    <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" />
-                  </svg>
-                  AI
-                </button>
-              </div>
             </div>
           </div>
 
@@ -173,57 +164,27 @@ function DetailsPage() {
                       </span>
                     </div>
                     <span className="DetailsPage-company-date">
-                      01 Jan 2:10 p.m.
+                      {details.metadata.lastUpdateTime}
                     </span>
                   </div>
                   <div className="DetailsPage-company-links">
-                    <a
-                      href={`https://${details.info.companyName.toLowerCase().replace(/\s+/g, '')}.com`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="DetailsPage-link"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <path
-                          d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      {details.info.companyName.toLowerCase().replace(/\s+/g, '')}.com
-                    </a>
-                    <span className="DetailsPage-divider">|</span>
-                    <span>BSE: 500410</span>
-                    <span className="DetailsPage-divider">|</span>
                     <span>NSE: {symbol}</span>
+                    <span className="DetailsPage-divider">|</span>
+                    <span>ISIN: {details.info.isin}</span>
+                    <span className="DetailsPage-divider">|</span>
+                    <span>Series: {details.metadata.series}</span>
+                    <span className="DetailsPage-divider">|</span>
+                    <span>Status: {details.metadata.status}</span>
                   </div>
-                </div>
-
-                <div className="DetailsPage-company-actions">
-                  <button className="DetailsPage-export-btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <path
-                        d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5-5m0 0l5 5m-5-5v12"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    EXPORT TO EXCEL
-                  </button>
-                  <button className="DetailsPage-follow-btn">
-                    + FOLLOW
-                  </button>
                 </div>
               </div>
 
               <div className="DetailsPage-metrics">
                 <div className="DetailsPage-metric">
                   <span className="DetailsPage-metric-label">Market Cap</span>
-                  <span className="DetailsPage-metric-value">₹ 32,703 Cr.</span>
+                  <span className="DetailsPage-metric-value">
+                    {marketCap ? `₹ ${formatCrores(marketCap)} Cr.` : '-'}
+                  </span>
                 </div>
                 <div className="DetailsPage-metric">
                   <span className="DetailsPage-metric-label">Current Price</span>
@@ -232,34 +193,50 @@ function DetailsPage() {
                   </span>
                 </div>
                 <div className="DetailsPage-metric">
-                  <span className="DetailsPage-metric-label">High / Low</span>
+                  <span className="DetailsPage-metric-label">High / Low (Day)</span>
                   <span className="DetailsPage-metric-value">
-                    ₹ 2,123 / 1,715
+                    {details.priceInfo.intraDayHighLow
+                      ? `₹ ${formatNumber(details.priceInfo.intraDayHighLow.max)} / ${formatNumber(details.priceInfo.intraDayHighLow.min)}`
+                      : '-'}
+                  </span>
+                </div>
+                <div className="DetailsPage-metric">
+                  <span className="DetailsPage-metric-label">52 Week High / Low</span>
+                  <span className="DetailsPage-metric-value">
+                    {details.priceInfo.weekHighLow
+                      ? `₹ ${formatNumber(details.priceInfo.weekHighLow.max)} / ${formatNumber(details.priceInfo.weekHighLow.min)}`
+                      : '-'}
                   </span>
                 </div>
                 <div className="DetailsPage-metric">
                   <span className="DetailsPage-metric-label">Stock P/E</span>
-                  <span className="DetailsPage-metric-value">10.2</span>
+                  <span className="DetailsPage-metric-value">
+                    {formatNumber(details.metadata.pdSymbolPe)}
+                  </span>
                 </div>
                 <div className="DetailsPage-metric">
-                  <span className="DetailsPage-metric-label">Book Value</span>
-                  <span className="DetailsPage-metric-value">₹ 1,061</span>
-                </div>
-                <div className="DetailsPage-metric">
-                  <span className="DetailsPage-metric-label">Dividend Yield</span>
-                  <span className="DetailsPage-metric-value">0.43 %</span>
-                </div>
-                <div className="DetailsPage-metric">
-                  <span className="DetailsPage-metric-label">ROCE</span>
-                  <span className="DetailsPage-metric-value">17.4 %</span>
-                </div>
-                <div className="DetailsPage-metric">
-                  <span className="DetailsPage-metric-label">ROE</span>
-                  <span className="DetailsPage-metric-value">13.2 %</span>
+                  <span className="DetailsPage-metric-label">Sector P/E</span>
+                  <span className="DetailsPage-metric-value">
+                    {formatNumber(details.metadata.pdSectorPe)}
+                  </span>
                 </div>
                 <div className="DetailsPage-metric">
                   <span className="DetailsPage-metric-label">Face Value</span>
-                  <span className="DetailsPage-metric-value">₹ 10.0</span>
+                  <span className="DetailsPage-metric-value">
+                    ₹ {formatNumber(details.securityInfo.faceValue)}
+                  </span>
+                </div>
+                <div className="DetailsPage-metric">
+                  <span className="DetailsPage-metric-label">VWAP</span>
+                  <span className="DetailsPage-metric-value">
+                    ₹ {formatNumber(details.priceInfo.vwap)}
+                  </span>
+                </div>
+                <div className="DetailsPage-metric">
+                  <span className="DetailsPage-metric-label">Industry</span>
+                  <span className="DetailsPage-metric-value">
+                    {details.industryInfo.basicIndustry || details.info.industry}
+                  </span>
                 </div>
               </div>
             </div>
@@ -268,25 +245,47 @@ function DetailsPage() {
               <div className="DetailsPage-about">
                 <h2 className="DetailsPage-sidebar-title">ABOUT</h2>
                 <p className="DetailsPage-about-text">
-                  {details.info.companyName} (incorporated in 1936), a member of the Adani Group, is
-                  principally engaged in the business of manufacturing and selling of
-                  Cement and Ready Mix Concrete. The Company has manufacturing...
+                  {details.info.companyName} is listed on the NSE with symbol {details.info.symbol}.
+                  The company operates in the {details.industryInfo.basicIndustry} sector,
+                  which is part of the broader {details.industryInfo.sector} industry under
+                  the {details.industryInfo.macro} category.
+                </p>
+                <p className="DetailsPage-about-text" style={{ marginTop: '16px' }}>
+                  Listed since {details.metadata.listingDate}, the company's securities are
+                  actively traded in the {details.securityInfo.tradingSegment} with{' '}
+                  {details.securityInfo.derivatives === 'Yes' ? 'derivatives trading available' : 'no derivatives'}.
+                  The stock is classified as {details.securityInfo.classOfShare} with
+                  a face value of ₹{details.securityInfo.faceValue}.
                 </p>
               </div>
 
               <div className="DetailsPage-keypoints">
-                <h2 className="DetailsPage-sidebar-title">KEY POINTS</h2>
+                <h2 className="DetailsPage-sidebar-title">KEY METRICS</h2>
                 <div className="DetailsPage-keypoint">
-                  <strong>Business Segments</strong>
+                  <strong>Trading Status</strong>
                   <p>
-                    1) Cement (94% in FY24 vs 91% in CY19):{' '}
-                    <sup className="DetailsPage-ref">[1]</sup>{' '}
-                    <sup className="DetailsPage-ref">[2]</sup> The company offers...
+                    Board Status: {details.securityInfo.boardStatus}<br />
+                    Trading: {details.securityInfo.tradingStatus}<br />
+                    SLB Available: {details.securityInfo.slb}
                   </p>
                 </div>
-                <button className="DetailsPage-read-more">
-                  READ MORE <span>›</span>
-                </button>
+                <div className="DetailsPage-keypoint">
+                  <strong>Pre-Market Summary</strong>
+                  <p>
+                    IEP: ₹{formatNumber(details.preOpenMarket.IEP)}<br />
+                    Total Traded Volume: {formatNumber(details.preOpenMarket.totalTradedVolume)}<br />
+                    Buy Qty: {formatNumber(details.preOpenMarket.totalBuyQuantity)} |
+                    Sell Qty: {formatNumber(details.preOpenMarket.totalSellQuantity)}
+                  </p>
+                </div>
+                <div className="DetailsPage-keypoint">
+                  <strong>Index Membership</strong>
+                  <p>
+                    Primary: {details.metadata.pdSectorInd}<br />
+                    {details.metadata.pdSectorIndAll.slice(0, 5).join(', ')}
+                    {details.metadata.pdSectorIndAll.length > 5 && ` and ${details.metadata.pdSectorIndAll.length - 5} more`}
+                  </p>
+                </div>
               </div>
             </aside>
           </div>

@@ -4,19 +4,34 @@ async function apiGet<T>(
   path: string,
   { signal }: { signal?: AbortSignal } = {},
 ): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: 'GET',
-    headers: {
-      accept: '*/*',
-    },
-    signal,
-  });
+  const url = `${API_BASE_URL}${path}`;
+  console.log('API Request:', url);
 
-  if (!response.ok) {
-    throw new Error(`Request failed (${response.status})`);
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        accept: '*/*',
+      },
+      signal,
+    });
+
+    console.log('API Response status:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unknown error');
+      throw new Error(`API request failed (${response.status}): ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data as T;
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw error;
+    }
+    console.error('API Error:', error);
+    throw error;
   }
-
-  return response.json() as Promise<T>;
 }
 
 export { apiGet, API_BASE_URL };

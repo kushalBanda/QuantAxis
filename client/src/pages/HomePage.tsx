@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchAllSymbols } from '../api/symbols';
 import './HomePage.css';
 
 const EXAMPLE_SYMBOLS = [
@@ -17,13 +18,87 @@ const EXAMPLE_SYMBOLS = [
 
 function HomePage() {
   const [query, setQuery] = useState('');
+  const [allSymbols, setAllSymbols] = useState<string[]>([]);
+  const [filteredSymbols, setFilteredSymbols] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  // Load all symbols on mount
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadSymbols() {
+      setIsLoading(true);
+      console.log('Loading all symbols...');
+      try {
+        const data = await fetchAllSymbols({ signal: controller.signal });
+        console.log('Loaded symbols:', data.length);
+        setAllSymbols(data);
+      } catch (error) {
+        console.error('Error loading symbols:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadSymbols();
+
+    return () => controller.abort();
+  }, []);
+
+  // Filter symbols as user types
+  useEffect(() => {
+    if (query.trim().length === 0) {
+      setFilteredSymbols([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const searchQuery = query.trim().toUpperCase();
+    const matches = allSymbols
+      .filter((symbol) => symbol.toUpperCase().includes(searchQuery))
+      .slice(0, 10); // Show max 10 suggestions
+
+    setFilteredSymbols(matches);
+    setShowSuggestions(matches.length > 0);
+  }, [query, allSymbols]);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (query.trim()) {
-      navigate(`/symbol/${query.trim().toUpperCase()}`);
+    const trimmedQuery = query.trim();
+    console.log('Search submitted:', trimmedQuery);
+    if (trimmedQuery) {
+      const symbolPath = `/symbol/${trimmedQuery.toUpperCase()}`;
+      console.log('Navigating to:', symbolPath);
+      setShowSuggestions(false);
+      navigate(symbolPath);
+    } else {
+      console.log('Empty query, not navigating');
     }
+  };
+
+  const handleSuggestionClick = (symbol: string) => {
+    console.log('Suggestion clicked:', symbol);
+    setQuery(symbol);
+    setShowSuggestions(false);
+    navigate(`/symbol/${symbol}`);
   };
 
   const handleExampleClick = (symbol: string) => {
@@ -45,7 +120,7 @@ function HomePage() {
         </p>
 
         <form onSubmit={handleSearch} className="HomePage-search">
-          <div className="HomePage-search-wrapper">
+          <div className="HomePage-search-wrapper" ref={suggestionsRef}>
             <svg
               className="HomePage-search-icon"
               width="20"
@@ -63,12 +138,37 @@ function HomePage() {
               />
             </svg>
             <input
-              type="search"
-              placeholder="Search for a company"
+              type="text"
+              placeholder={isLoading ? 'Loading symbols...' : 'Search for a company'}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onFocus={() => {
+                if (filteredSymbols.length > 0) {
+                  setShowSuggestions(true);
+                }
+              }}
               className="HomePage-search-input"
+              autoComplete="off"
+              disabled={isLoading}
             />
+            <button type="submit" className="HomePage-search-submit" disabled={isLoading}>
+              Search
+            </button>
+
+            {showSuggestions && filteredSymbols.length > 0 && (
+              <div className="HomePage-suggestions">
+                {filteredSymbols.map((symbol) => (
+                  <button
+                    key={symbol}
+                    type="button"
+                    onClick={() => handleSuggestionClick(symbol)}
+                    className="HomePage-suggestion"
+                  >
+                    {symbol}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </form>
 

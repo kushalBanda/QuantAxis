@@ -1,9 +1,9 @@
 # LineTrace Codebase Analysis
 
 ### File Structure Summary
-- Total Files: 196
-- Total Directories: 41
-- File Extensions: .md: 6, .png: 3, .lock: 2, .toml: 1, .py: 26, .adoc: 1, .js: 24, .json: 8, .html: 53, .css: 6, .ts: 27, .map: 22, .graphql: 8, .xml: 1, .info: 1, .snap: 1, .ico: 1, .txt: 1, .svg: 1
+- Total Files: 217
+- Total Directories: 47
+- File Extensions: .md: 8, .lock: 2, .toml: 1, .py: 26, .adoc: 1, .js: 21, .json: 11, .html: 54, .css: 9, .ts: 33, .map: 25, .graphql: 8, .xml: 1, .info: 1, .png: 2, .snap: 1, .ico: 2, .txt: 3, .tsx: 4, .svg: 1
 
 ### Directory Tree
 ```
@@ -59,7 +59,6 @@
    │  ├── AGENTS.md
    │  └── main.py
   ├── README.md
-  ├── Screenshot 2026-01-01 at 1.29.49 PM.png
   ├── LineTrace.md
   ├── stock-nse-india
    │  ├── QWEN.md
@@ -234,15 +233,43 @@
       │  └── robots.txt
      ├── package-lock.json
      ├── package.json
+     ├── tsconfig.json
+     ├── build
+      │  ├── favicon.ico
+      │  ├── index.html
+      │  ├── asset-manifest.json
+      │  ├── static
+      │  │  ├── css
+      │  │  │  ├── main.b37c5da2.css.map
+      │  │  │  └── main.b37c5da2.css
+      │  │  └── js
+      │  │    ├── main.d679d1e7.js.map
+      │  │    ├── main.d679d1e7.js
+      │  │    ├── 453.eca5f793.chunk.js
+      │  │    ├── 453.eca5f793.chunk.js.map
+      │  │    └── main.d679d1e7.js.LICENSE.txt
+      │  ├── manifest.json
+      │  └── robots.txt
+     ├── AGENTS.md
+     ├── CLAUDE.md
      └── src
-        ├── reportWebVitals.js
+        ├── index.tsx
+        ├── App.tsx
         ├── App.css
-        ├── index.js
         ├── index.css
+        ├── schema
+         │  ├── symbols.ts
+         │  └── equity.ts
+        ├── reportWebVitals.ts
         ├── api
-         │  ├── client.js
-         │  └── symbols.js
-        ├── logo.svg
-        └── App.js
+         │  ├── symbols.ts
+         │  ├── client.ts
+         │  └── equity.ts
+        ├── pages
+         │  ├── HomePage.css
+         │  ├── DetailsPage.tsx
+         │  ├── HomePage.tsx
+         │  └── DetailsPage.css
+        └── logo.svg
 ```
 

@@ -437,8 +437,7 @@
   color: #4f46e5;
 }
 
-.DetailsPage-loading,
-.DetailsPage-error {
+.DetailsPage-loading {
   text-align: center;
   padding: 80px 20px;
   font-size: 1.1rem;
@@ -446,7 +445,38 @@
 }
 
 .DetailsPage-error {
+  text-align: center;
+  padding: 80px 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.DetailsPage-error h2 {
   color: #ef4444;
+  margin-bottom: 16px;
+}
+
+.DetailsPage-error p {
+  color: #6b7280;
+  margin-bottom: 12px;
+}
+
+.DetailsPage-back-btn {
+  margin-top: 24px;
+  padding: 12px 24px;
+  background: #6366f1;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.DetailsPage-back-btn:hover {
+  background: #4f46e5;
 }
 
 /* Responsive */
