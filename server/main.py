@@ -3,7 +3,7 @@ import orjson
 from collections.abc import Iterable
 
 from app.services.equity.client import EquityMarketClient
-from app.services.equity.equity import fetch_historical_data
+from app.services.equity.equity import fetch_historical_data, fetch_symbols_data, fetch_technical_indicators_data
 
 
 def main(
@@ -16,17 +16,17 @@ def main(
     client = EquityMarketClient(base_url=base_url)
     try:
         payload = {
-            # "symbols": fetch_symbols_data(symbols, client=client),
+            "symbols": fetch_symbols_data(symbols, client=client),
             "historical": fetch_historical_data(
                 symbols,
                 start_date,
                 end_date,
                 client=client,
             ),
-            # "technicalIndicators": fetch_technical_indicators_data(
-            #     symbols,
-            #     client=client,
-            # ),
+            "technicalIndicators": fetch_technical_indicators_data(
+                symbols,
+                client=client,
+            ),
         }
     finally:
         client.close()

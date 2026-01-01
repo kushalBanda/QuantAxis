@@ -1,9 +1,9 @@
 # LineTrace Codebase Analysis
 
 ### File Structure Summary
-- Total Files: 178
-- Total Directories: 36
-- File Extensions: .md: 5, .lock: 2, .toml: 1, .py: 24, .adoc: 1, .js: 19, .json: 5, .html: 52, .css: 4, .ts: 27, .map: 22, .graphql: 8, .xml: 1, .info: 1, .png: 2, .snap: 1
+- Total Files: 196
+- Total Directories: 41
+- File Extensions: .md: 6, .png: 3, .lock: 2, .toml: 1, .py: 26, .adoc: 1, .js: 24, .json: 8, .html: 53, .css: 6, .ts: 27, .map: 22, .graphql: 8, .xml: 1, .info: 1, .snap: 1, .ico: 1, .txt: 1, .svg: 1
 
 ### Directory Tree
 ```
@@ -17,6 +17,8 @@
    │  │  │  └── exceptions.py
    │  │  ├── auth
    │  │  ├── utils
+   │  │  ├── airflow
+   │  │  │  └── __init__.py
    │  │  ├── schema
    │  │  ├── ai
    │  │  │  ├── tools
@@ -44,6 +46,7 @@
    │  │  └── services
    │  │    ├── equity
    │  │     │  ├── technicalIndicators.py
+   │  │     │  ├── equity.py
    │  │     │  ├── client.py
    │  │     │  ├── __init__.py
    │  │     │  ├── symbol.py
@@ -52,9 +55,11 @@
    │  │       └── __init__.py
    │  ├── uv.lock
    │  ├── pyproject.toml
+   │  ├── docs
    │  ├── AGENTS.md
    │  └── main.py
   ├── README.md
+  ├── Screenshot 2026-01-01 at 1.29.49 PM.png
   ├── LineTrace.md
   ├── stock-nse-india
    │  ├── QWEN.md
@@ -221,5 +226,23 @@
    │    └── __snapshots__
    │       └── utils.spec.ts.snap
   └── client
+     ├── README.md
+     ├── public
+      │  ├── favicon.ico
+      │  ├── index.html
+      │  ├── manifest.json
+      │  └── robots.txt
+     ├── package-lock.json
+     ├── package.json
+     └── src
+        ├── reportWebVitals.js
+        ├── App.css
+        ├── index.js
+        ├── index.css
+        ├── api
+         │  ├── client.js
+         │  └── symbols.js
+        ├── logo.svg
+        └── App.js
 ```
 
