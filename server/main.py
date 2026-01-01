@@ -1,9 +1,9 @@
+from __future__ import annotations
 import orjson
 from collections.abc import Iterable
-from __future__ import annotations
 
 from app.services.equity.client import EquityMarketClient
-from app.services.equity.equity import fetch_symbol_data, fetch_symbols_data, fetch_historical_data, fetch_technical_indicators_data
+from app.services.equity.equity import fetch_historical_data
 
 
 def main(
