@@ -1,0 +1,126 @@
+.StockChart {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.StockChart-header {
+  padding: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.StockChart-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.StockChart-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.StockChart-control-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.StockChart-types,
+.StockChart-periods {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.StockChart-type,
+.StockChart-period {
+  padding: 8px 16px;
+  background: #ffffff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.StockChart-type:hover:not(:disabled),
+.StockChart-period:hover:not(:disabled) {
+  border-color: #6366f1;
+  color: #6366f1;
+  background: #eef2ff;
+}
+
+.StockChart-type.is-active {
+  background: #6366f1;
+  border-color: #6366f1;
+  color: #ffffff;
+}
+
+.StockChart-period.is-active {
+  background: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+}
+
+.StockChart-type:disabled,
+.StockChart-period:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.StockChart-container {
+  position: relative;
+  padding: 20px;
+}
+
+.StockChart-chart {
+  width: 100%;
+}
+
+.StockChart-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #6b7280;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.StockChart-error {
+  padding: 40px 20px;
+  text-align: center;
+  color: #ef4444;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+  .StockChart-header {
+    padding: 16px;
+  }
+
+  .StockChart-controls {
+    gap: 12px;
+  }
+
+  .StockChart-type,
+  .StockChart-period {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+}
