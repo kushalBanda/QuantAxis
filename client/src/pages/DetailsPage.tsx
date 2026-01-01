@@ -100,17 +100,19 @@ function DetailsPage() {
     return () => controller.abort();
   }, [symbol]);
 
+  // Load all historical data once (5Y)
   useEffect(() => {
     if (!symbol) return;
 
     const currentSymbol = symbol;
     const controller = new AbortController();
 
-    async function loadHistoricalData() {
+    async function loadAllHistoricalData() {
       setIsLoadingChart(true);
-      console.log('Fetching historical data for period:', selectedPeriod);
+      console.log('Fetching all historical data (5Y)...');
       try {
-        const { start, end } = calculateDateRange(selectedPeriod);
+        // Fetch 5 years of data
+        const { start, end } = calculateDateRange('5Y');
         const response = await fetchHistoricalData(currentSymbol, start, end, {
           signal: controller.signal,
         });
@@ -133,10 +135,10 @@ function DetailsPage() {
       }
     }
 
-    loadHistoricalData();
+    loadAllHistoricalData();
 
     return () => controller.abort();
-  }, [symbol, selectedPeriod]);
+  }, [symbol]);
 
   const formatNumber = (value?: number | null) => {
     if (value === null || value === undefined) {

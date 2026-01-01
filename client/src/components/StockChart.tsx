@@ -199,17 +199,59 @@ function StockChart({ data, selectedPeriod, onPeriodChange, isLoading }: StockCh
         });
       }
 
-      // Fit content
-      if (chartRef.current) {
-        chartRef.current.timeScale().fitContent();
-      }
-
       setChartError(null);
     } catch (error) {
       console.error('Error setting chart data:', error);
       setChartError('Failed to load chart data');
     }
   }, [data, chartType]);
+
+  // Auto-adjust visible range based on selected period
+  useEffect(() => {
+    if (!chartRef.current || !data || data.length === 0) return;
+
+    try {
+      const timeScale = chartRef.current.timeScale();
+
+      // Calculate the time range for the selected period
+      const now = Math.floor(Date.now() / 1000);
+      let startTime: number;
+
+      switch (selectedPeriod) {
+        case '1D':
+          startTime = now - (24 * 60 * 60);
+          break;
+        case '1W':
+          startTime = now - (7 * 24 * 60 * 60);
+          break;
+        case '1M':
+          startTime = now - (30 * 24 * 60 * 60);
+          break;
+        case '3M':
+          startTime = now - (90 * 24 * 60 * 60);
+          break;
+        case '6M':
+          startTime = now - (180 * 24 * 60 * 60);
+          break;
+        case '1Y':
+          startTime = now - (365 * 24 * 60 * 60);
+          break;
+        case '5Y':
+          startTime = now - (5 * 365 * 24 * 60 * 60);
+          break;
+        default:
+          startTime = now - (30 * 24 * 60 * 60);
+      }
+
+      // Set visible range to show only the selected period
+      timeScale.setVisibleRange({
+        from: startTime as any,
+        to: now as any,
+      });
+    } catch (error) {
+      console.error('Error setting visible range:', error);
+    }
+  }, [selectedPeriod, data]);
 
   if (chartError) {
     return (
