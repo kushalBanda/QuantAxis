@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchEquityDetails } from '../api/equity';
+import { fetchHistoricalData } from '../api/historical';
 import type { EquityResponse } from '../schema/equity';
+import type { HistoricalDataPoint } from '../schema/historical';
+import StockChart, { TimePeriod } from '../components/StockChart';
 import './DetailsPage.css';
 
 type LoadStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -13,6 +16,50 @@ function DetailsPage() {
   const [status, setStatus] = useState<LoadStatus>('idle');
   const [error, setError] = useState<Error | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [historicalData, setHistoricalData] = useState<HistoricalDataPoint[]>([]);
+  const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('1M');
+  const [isLoadingChart, setIsLoadingChart] = useState(false);
+
+  const calculateDateRange = (period: TimePeriod): { start: string; end: string } => {
+    const end = new Date();
+    const start = new Date();
+
+    switch (period) {
+      case '1D':
+        start.setDate(end.getDate() - 1);
+        break;
+      case '1W':
+        start.setDate(end.getDate() - 7);
+        break;
+      case '1M':
+        start.setMonth(end.getMonth() - 1);
+        break;
+      case '3M':
+        start.setMonth(end.getMonth() - 3);
+        break;
+      case '6M':
+        start.setMonth(end.getMonth() - 6);
+        break;
+      case '1Y':
+        start.setFullYear(end.getFullYear() - 1);
+        break;
+      case '5Y':
+        start.setFullYear(end.getFullYear() - 5);
+        break;
+    }
+
+    const formatDate = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    return {
+      start: formatDate(start),
+      end: formatDate(end),
+    };
+  };
 
   useEffect(() => {
     if (!symbol) {
@@ -52,6 +99,44 @@ function DetailsPage() {
 
     return () => controller.abort();
   }, [symbol]);
+
+  useEffect(() => {
+    if (!symbol) return;
+
+    const currentSymbol = symbol;
+    const controller = new AbortController();
+
+    async function loadHistoricalData() {
+      setIsLoadingChart(true);
+      console.log('Fetching historical data for period:', selectedPeriod);
+      try {
+        const { start, end } = calculateDateRange(selectedPeriod);
+        const response = await fetchHistoricalData(currentSymbol, start, end, {
+          signal: controller.signal,
+        });
+        console.log('Historical data response:', response);
+
+        if (response && response.length > 0 && response[0].data) {
+          setHistoricalData(response[0].data);
+        } else {
+          setHistoricalData([]);
+        }
+      } catch (loadError) {
+        if (loadError instanceof DOMException && loadError.name === 'AbortError') {
+          console.log('Historical data request aborted');
+          return;
+        }
+        console.error('Error fetching historical data:', loadError);
+        setHistoricalData([]);
+      } finally {
+        setIsLoadingChart(false);
+      }
+    }
+
+    loadHistoricalData();
+
+    return () => controller.abort();
+  }, [symbol, selectedPeriod]);
 
   const formatNumber = (value?: number | null) => {
     if (value === null || value === undefined) {
@@ -239,6 +324,13 @@ function DetailsPage() {
                   </span>
                 </div>
               </div>
+
+              <StockChart
+                data={historicalData}
+                selectedPeriod={selectedPeriod}
+                onPeriodChange={setSelectedPeriod}
+                isLoading={isLoadingChart}
+              />
             </div>
 
             <aside className="DetailsPage-sidebar">
