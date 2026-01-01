@@ -1,0 +1,12 @@
+.App {
+  min-height: 100vh;
+}
+
+/* Utility classes */
+.is-up {
+  color: #10b981;
+}
+
+.is-down {
+  color: #ef4444;
+}
